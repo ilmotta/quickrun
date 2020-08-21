@@ -1366,12 +1366,19 @@ by quickrun.el. But you can register your own command for some languages")
          (dir (quickrun--default-directory)))
     (expand-file-name (concat dir (make-temp-name "qr_") suffix))))
 
+(defun quickrun--find-from-org-src ()
+  "Try to find command from Org source buffer."
+  (when (bound-and-true-p org-src-mode)
+    (let ((buffer-type (quickrun--find-from-major-mode-alist)))
+      (gethash buffer-type quickrun--command-key-table))))
+
 (defun quickrun--command-key (src)
   "Not documented."
   (let ((file-type (and src (quickrun--decide-file-type src)))
         (use-prefix-p (and (consp current-prefix-arg)
                            (= (car current-prefix-arg) 4))))
-    (or (and use-prefix-p (quickrun--prompt))
+    (or (quickrun--find-from-org-src)
+        (and use-prefix-p (quickrun--prompt))
         (and quickrun-option-cmd-alist "_user_defined") ;; setting dummy value
         quickrun-option-cmdkey
         (and (not src) (quickrun--prompt))
